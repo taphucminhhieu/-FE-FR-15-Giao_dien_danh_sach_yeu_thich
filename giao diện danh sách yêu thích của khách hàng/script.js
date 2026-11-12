@@ -59,11 +59,15 @@ let currentTab = 'xe-may';
 // Hàm hiển thị danh sách xe
 function renderCars() {
     const container = document.getElementById('cars-container');
-    const items = carsData[currentTab];
+    const countXeMay = document.getElementById('count-xe-may');
+    const countOTo = document.getElementById('count-o-to');
 
-    // Cập nhật số lượng đếm trên tab
-    document.getElementById('count-xe-may').innerText = carsData['xe-may'].length;
-    document.getElementById('count-o-to').innerText = carsData['o-to'].length;
+    // Cập nhật số lượng đếm trên tab an toàn
+    if (countXeMay && carsData['xe-may']) countXeMay.innerText = carsData['xe-may'].length;
+    if (countOTo && carsData['o-to']) countOTo.innerText = carsData['o-to'].length;
+
+    if (!container) return;
+    const items = carsData[currentTab] || [];
 
     if (items.length === 0) {
         container.innerHTML = `
@@ -120,7 +124,7 @@ function renderCars() {
             <!-- Nút thao tác -->
             <div class="car-actions">
                 <button onclick="removeCar('${currentTab}', ${car.id})" class="btn-action btn-remove">Bỏ thích</button>
-                <button onclick="showToast('Đang mở chi tiết xe...')" class="btn-action btn-detail">Xem chi tiết</button>
+                <button class="btn-action btn-detail">Xem chi tiết</button>
             </div>
         </div>
     `).join('');
@@ -146,20 +150,261 @@ function switchTab(tab) {
 function removeCar(tab, id) {
     carsData[tab] = carsData[tab].filter(car => car.id !== id);
     renderCars();
-    showToast("Đã xóa xe khỏi danh sách yêu thích!");
 }
 
-// Hiển thị thông báo Toast
-function showToast(msg) {
-    const toast = document.getElementById('toast');
-    document.getElementById('toast-message').innerText = msg;
-    toast.classList.add('show');
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 2500);
+// Hàm thông báo đã được tắt theo yêu cầu
+function showToast() { }
+
+// --- Quản lý hiển thị các View trong Tài khoản của tôi ---
+
+// Ẩn tất cả các view chức năng
+function hideAllAccountViews() {
+    const viewIds = ['view-blank', 'view-profile', 'view-orders', 'view-favorites', 'view-reviews'];
+    viewIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.display = 'none';
+        }
+    });
+}
+
+// Bấm vào Tài khoản Vũ Đức -> Hiện 1 khoảng trắng và chờ người dùng chọn chức năng
+function showBlankAccountView() {
+    hideAllAccountViews();
+
+    const blankView = document.getElementById('view-blank');
+    if (blankView) {
+        blankView.style.display = 'flex';
+    }
+
+    // Bỏ trạng thái active của tất cả các mục chức năng
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    sidebarItems.forEach(item => item.classList.remove('active'));
+
+    // Đặt lại text của ô chọn trên mobile
+    const selectText = document.getElementById('accountSelectText');
+    if (selectText) {
+        selectText.innerText = 'Tài khoản của tôi';
+    }
+
+    closeAccountDropdown();
+    closeNavPopup();
+
+    // Trên mobile, cuộn nhẹ đến danh mục Tài khoản của tôi
+    const accountSidebar = document.getElementById('accountSidebar');
+    if (window.innerWidth <= 1024 && accountSidebar) {
+        accountSidebar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Chuyển đổi và hiển thị chức năng cụ thể khi được người dùng chọn
+function switchAccountView(itemName) {
+    hideAllAccountViews();
+
+    let targetViewId = 'view-favorites';
+    let titleName = 'Danh sách của tôi';
+
+    if (itemName === 'Hồ sơ của tôi') {
+        targetViewId = 'view-profile';
+        titleName = 'Hồ sơ của tôi';
+    } else if (itemName === 'Đơn thuê của tôi') {
+        targetViewId = 'view-orders';
+        titleName = 'Đơn thuê của tôi';
+    } else if (itemName === 'Danh sách của tôi' || itemName === 'Danh sách yêu thích') {
+        targetViewId = 'view-favorites';
+        titleName = 'Danh sách của tôi';
+        renderCars();
+    } else if (itemName === 'Đánh giá của tôi') {
+        targetViewId = 'view-reviews';
+        titleName = 'Đánh giá của tôi';
+    }
+
+    const targetEl = document.getElementById(targetViewId);
+    if (targetEl) {
+        targetEl.style.display = 'block';
+    }
+
+    // Cập nhật text ô chọn trên mobile
+    const selectText = document.getElementById('accountSelectText');
+    if (selectText) {
+        selectText.innerText = titleName;
+    }
+
+    closeAccountDropdown();
+}
+
+// Lưu thông tin hồ sơ
+function saveProfile(event) {
+    if (event) event.preventDefault();
+    const nameInput = document.getElementById('profileNameInput');
+    if (nameInput && nameInput.value.trim()) {
+        const newName = nameInput.value.trim();
+        document.querySelectorAll('.user-name, .popup-name').forEach(el => {
+            el.innerText = newName;
+        });
+    }
+}
+
+// Bộ lọc đơn thuê xe
+function filterOrders(status, btn) {
+    const tabs = document.querySelectorAll('.order-tabs .tab-btn');
+    tabs.forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    const orders = document.querySelectorAll('.order-card');
+    orders.forEach(card => {
+        if (status === 'all') {
+            card.style.display = 'flex';
+        } else if (status === 'active') {
+            const hasActive = card.querySelector('.order-badge.active');
+            card.style.display = hasActive ? 'flex' : 'none';
+        } else if (status === 'completed') {
+            const hasCompleted = card.querySelector('.order-badge.completed');
+            card.style.display = hasCompleted ? 'flex' : 'none';
+        }
+    });
+}
+
+// --- Quản lý Popup Menu Mobile / iPad ---
+function openNavPopup() {
+    const popup = document.getElementById('navPopup');
+    const overlay = document.getElementById('navPopupOverlay');
+    if (popup && overlay) {
+        popup.classList.add('show');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeNavPopup() {
+    const popup = document.getElementById('navPopup');
+    const overlay = document.getElementById('navPopupOverlay');
+    if (popup && overlay) {
+        popup.classList.remove('show');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+// --- Quản lý Ô nhỏ chọn Tài khoản của tôi ---
+function toggleAccountDropdown(event) {
+    if (event) event.stopPropagation();
+    const sidebar = document.getElementById('accountSidebar');
+    const btn = document.getElementById('accountSelectBtn');
+    if (sidebar) {
+        const isOpen = sidebar.classList.toggle('open');
+        if (btn) {
+            btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+    }
+}
+
+function closeAccountDropdown() {
+    const sidebar = document.getElementById('accountSidebar');
+    const btn = document.getElementById('accountSelectBtn');
+    if (sidebar && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        if (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    }
+}
+
+// Khởi tạo các sự kiện điều hướng & dropdown
+function initNavigationEvents() {
+    // Nút Tài khoản Vũ Đức trên header -> ra khoảng trắng
+    const userProfileBtn = document.getElementById('userProfileBtn');
+    if (userProfileBtn) {
+        userProfileBtn.addEventListener('click', showBlankAccountView);
+    }
+
+    // Nút Tài khoản Vũ Đức trong popup menu mobile
+    const popupUserProfileBtn = document.getElementById('popupUserProfileBtn');
+    if (popupUserProfileBtn) {
+        popupUserProfileBtn.addEventListener('click', showBlankAccountView);
+    }
+
+    // Nút 3 gạch mở popup menu
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    if (hamburgerBtn) {
+        hamburgerBtn.addEventListener('click', openNavPopup);
+    }
+
+    // Nút đóng popup & lớp phủ overlay
+    const popupCloseBtn = document.getElementById('popupCloseBtn');
+    if (popupCloseBtn) {
+        popupCloseBtn.addEventListener('click', closeNavPopup);
+    }
+
+    const navPopupOverlay = document.getElementById('navPopupOverlay');
+    if (navPopupOverlay) {
+        navPopupOverlay.addEventListener('click', closeNavPopup);
+    }
+
+    // Nút bấm "Tài khoản của tôi" (ô nhỏ trên mobile/ipad)
+    const accountSelectBtn = document.getElementById('accountSelectBtn');
+    if (accountSelectBtn) {
+        accountSelectBtn.addEventListener('click', toggleAccountDropdown);
+        // Hỗ trợ bấm phím Enter hoặc Space
+        accountSelectBtn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleAccountDropdown(e);
+            }
+        });
+    }
+
+    // Các mục con trong menu tài khoản (Hồ sơ, Đơn thuê, Danh sách, Đánh giá)
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    sidebarItems.forEach(item => {
+        item.addEventListener('click', function (e) {
+            e.preventDefault();
+            const itemName = this.getAttribute('data-name') || this.innerText.trim();
+
+            sidebarItems.forEach(si => si.classList.remove('active'));
+            this.classList.add('active');
+
+            // Hiển thị chức năng tương ứng
+            switchAccountView(itemName);
+        });
+    });
+
+    // Quản lý chuyển tab active trên navbar desktop giống trang chủ gốc
+    const desktopNavLinks = document.querySelectorAll('.nav-list li a');
+    desktopNavLinks.forEach(link => {
+        link.addEventListener('click', function () {
+            desktopNavLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Nút chuông thông báo trên header
+    const bellBtn = document.getElementById('bellBtn');
+    if (bellBtn) {
+        bellBtn.addEventListener('click', () => {
+            // Đã tắt thông báo theo yêu cầu
+        });
+    }
+
+    // Click bên ngoài thì tự đóng dropdown tài khoản
+    document.addEventListener('click', function (e) {
+        const sidebar = document.getElementById('accountSidebar');
+        if (sidebar && !sidebar.contains(e.target)) {
+            closeAccountDropdown();
+        }
+    });
+
+    // Bấm ESC đóng popup và dropdown
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeNavPopup();
+            closeAccountDropdown();
+        }
+    });
 }
 
 // Khởi chạy khi tải trang
 window.onload = function () {
     renderCars();
+    initNavigationEvents();
 };

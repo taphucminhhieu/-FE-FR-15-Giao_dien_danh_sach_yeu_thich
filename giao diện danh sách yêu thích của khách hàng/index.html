@@ -15,72 +15,341 @@
 
     <!-- Header Đầu Trang -->
     <header class="header">
-        <div class="header-logo">
-            <span class="logo-name">VRP - <span>Go</span></span>
-        </div>
+        <div class="container header-container">
+            <a href="#" class="logo">VRP - <span>Go</span></a>
 
-        <div class="header-right">
-            <button class="bell-btn" title="Thông báo">
-                <i class="fa-solid fa-bell"></i>
-            </button>
-            <div class="user-profile">
-                <div class="user-avatar">VU</div>
-                <span class="user-name">Vu Duc</span>
-                <i class="fa-solid fa-chevron-down"></i>
+            <!-- Menu Điều Hướng Desktop (giống trang chủ mở đầu gốc) -->
+            <nav class="navbar">
+                <ul class="nav-list">
+                    <li><a href="#home" class="active">Trang chủ</a></li>
+                    <li><a href="#vehicles">Thuê xe</a></li>
+                    <li><a href="#how-it-works">Cách hoạt động</a></li>
+                    <li><a href="#about">Về chúng tôi</a></li>
+                    <li><a href="#schedule">Lịch thuê</a></li>
+                </ul>
+            </nav>
+
+            <!-- Thao tác bên phải header -->
+            <div class="header-actions">
+                <!-- Profile người dùng Vũ Đức -->
+                <div class="user-profile" id="userProfileBtn" role="button" tabindex="0" title="Tài khoản Vũ Đức">
+                    <div class="user-avatar">VU</div>
+                    <span class="user-name">Vũ Đức</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+
+                <!-- Chuông thông báo (ở bên phải gần chỗ tài khoản Vũ Đức) -->
+                <button class="header-icon-btn bell-btn" id="bellBtn" title="Thông báo" aria-label="Thông báo">
+                    <i class="fa-solid fa-bell"></i>
+                </button>
+
+                <!-- Nút 3 gạch ngang (Hamburger) trên Mobile / iPad -->
+                <button class="hamburger-btn" id="hamburgerBtn" title="Menu điều hướng" aria-label="Menu điều hướng">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
             </div>
         </div>
     </header>
 
+    <!-- Header Thu Nhỏ dạng POPUP (cho Mobile / iPad khi bấm 3 gạch) -->
+    <div class="nav-popup-overlay" id="navPopupOverlay"></div>
+    <div class="nav-popup" id="navPopup" role="dialog" aria-modal="true" aria-label="Menu điều hướng">
+        <div class="nav-popup-header">
+            <div class="popup-logo">
+                <a href="#" class="logo">VRP - <span>Go</span></a>
+            </div>
+            <button class="popup-close-btn" id="popupCloseBtn" aria-label="Đóng menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Thông tin tài khoản trong popup (không ghi trạng thái hoạt động) -->
+        <div class="nav-popup-user" id="popupUserProfileBtn" role="button" tabindex="0" title="Tài khoản Vũ Đức">
+            <div class="user-avatar">VU</div>
+            <div class="user-info">
+                <span class="popup-name">Vũ Đức</span>
+            </div>
+        </div>
+
+        <div class="nav-popup-divider"></div>
+
+        <nav class="nav-popup-links">
+            <a href="#home" class="popup-link active" onclick="closeNavPopup()">
+                <i class="fa-solid fa-house"></i>
+                <span>Trang chủ</span>
+            </a>
+            <a href="#vehicles" class="popup-link" onclick="closeNavPopup()">
+                <i class="fa-solid fa-motorcycle"></i>
+                <span>Thuê xe</span>
+            </a>
+            <a href="#how-it-works" class="popup-link" onclick="closeNavPopup()">
+                <i class="fa-solid fa-circle-question"></i>
+                <span>Cách hoạt động</span>
+            </a>
+            <a href="#about" class="popup-link" onclick="closeNavPopup()">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>Về chúng tôi</span>
+            </a>
+            <a href="#schedule" class="popup-link" onclick="closeNavPopup()">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Lịch thuê</span>
+            </a>
+        </nav>
+
+        <div class="nav-popup-divider"></div>
+
+        <div class="nav-popup-actions">
+            <button class="popup-sub-btn" onclick="closeNavPopup();">
+                <i class="fa-solid fa-bell"></i> Thông báo
+            </button>
+        </div>
+    </div>
+
     <!-- Khung Nội Dung Chính -->
     <div class="main-container">
 
-        <!-- Sidebar Điều Hướng -->
-        <aside class="sidebar">
-            <div class="sidebar-label">TÀI KHOẢN CỦA TÔI</div>
-            <a href="#" class="sidebar-item">
-                <i class="fa-solid fa-user"></i> Hồ sơ của tôi
-            </a>
-            <a href="#" class="sidebar-item">
-                <i class="fa-solid fa-file-invoice"></i> Đơn thuê của tôi
-            </a>
-            <a href="#" class="sidebar-item active">
-                <i class="fa-solid fa-heart"></i> Danh sách yêu thích
-            </a>
-            <a href="#" class="sidebar-item">
-                <i class="fa-solid fa-star-half-stroke"></i> Đánh giá của tôi
-            </a>
+        <!-- Sidebar / Dropdown Điều Hướng Tài Khoản -->
+        <aside class="sidebar account-sidebar" id="accountSidebar">
+            <!-- Ô nhỏ hiển thị trên mobile/ipad (chuẩn theo ảnh) -->
+            <div class="account-select-btn" id="accountSelectBtn" role="button" aria-expanded="false" tabindex="0">
+                <div class="account-select-left">
+                    <i class="fa-regular fa-user"></i>
+                    <span id="accountSelectText">Tài khoản của tôi</span>
+                </div>
+                <div class="account-select-caret">
+                    <i class="fa-solid fa-caret-down"></i>
+                </div>
+            </div>
+
+            <!-- Danh sách các mục tài khoản (xổ xuống trên mobile, dạng cột trên desktop) -->
+            <div class="sidebar-nav-list" id="accountNavList">
+                <div class="sidebar-label">TÀI KHOẢN CỦA TÔI</div>
+                <a href="#" class="sidebar-item" data-name="Hồ sơ của tôi">
+                    <i class="fa-solid fa-user"></i> <span>Hồ sơ của tôi</span>
+                </a>
+                <a href="#" class="sidebar-item" data-name="Đơn thuê của tôi">
+                    <i class="fa-solid fa-file-invoice"></i> <span>Đơn thuê của tôi</span>
+                </a>
+                <a href="#" class="sidebar-item active" data-name="Danh sách của tôi">
+                    <i class="fa-solid fa-heart"></i> <span>Danh sách của tôi</span>
+                </a>
+                <a href="#" class="sidebar-item" data-name="Đánh giá của tôi">
+                    <i class="fa-solid fa-star-half-stroke"></i> <span>Đánh giá của tôi</span>
+                </a>
+            </div>
         </aside>
 
         <!-- Phần Nội Dung Trọng Tâm -->
         <main class="content">
-            <div class="greeting-box">
-                <h1>Xin chào bạn!</h1>
-                <p>Quản lý danh sách phương tiện bạn đã lưu và quan tâm.</p>
+
+            <!-- VIEW 1: Khoảng trắng khi bấm vào tài khoản Vũ Đức -->
+            <div id="view-blank" class="blank-account-view" style="display: none;">
+                <div class="blank-card">
+                    <div class="blank-icon-wrap">
+                        <i class="fa-regular fa-user"></i>
+                    </div>
+                    <h2>Tài khoản Vũ Đức</h2>
+                    <p>Vui lòng chọn một chức năng trong phần <strong>Tài khoản của tôi</strong> để hiển thị nội dung.
+                    </p>
+                </div>
             </div>
 
-            <div class="card-box">
-                <h2>Xe yêu thích của tôi</h2>
-
-                <!-- Các Tab Chuyển Đổi -->
-                <div class="tabs">
-                    <button onclick="switchTab('xe-may')" id="tab-xe-may" class="tab-btn active">
-                        Xe máy (<span id="count-xe-may">0</span>)
-                    </button>
-                    <button onclick="switchTab('o-to')" id="tab-o-to" class="tab-btn">
-                        Xe ô tô (<span id="count-o-to">0</span>)
-                    </button>
+            <!-- VIEW 2: Hồ sơ của tôi -->
+            <div id="view-profile" class="card-box" style="display: none;">
+                <div class="section-header">
+                    <h2>Hồ sơ của tôi</h2>
+                    <p class="section-desc">Quản lý thông tin hồ sơ và bảo mật tài khoản của bạn.</p>
                 </div>
 
-                <!-- Danh sách xe (Được render tự động bằng JS) -->
-                <div id="cars-container" class="car-list"></div>
+                <div class="profile-layout">
+                    <div class="profile-avatar-box">
+                        <div class="profile-big-avatar">VU</div>
+                        <button class="btn-change-avatar">
+                            <i class="fa-solid fa-camera"></i> Đổi ảnh
+                        </button>
+                    </div>
+
+                    <form class="profile-form" onsubmit="saveProfile(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Họ và tên</label>
+                                <input type="text" id="profileNameInput" value="Vũ Đức" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Số điện thoại</label>
+                                <input type="text" value="0987 654 321" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" value="vuduc@gmail.com" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày sinh</label>
+                                <input type="date" value="1998-08-15" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Giới tính</label>
+                                <div class="gender-radio-group">
+                                    <label><input type="radio" name="gender" value="nam" checked> Nam</label>
+                                    <label><input type="radio" name="gender" value="nu"> Nữ</label>
+                                    <label><input type="radio" name="gender" value="khac"> Khác</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Giấy phép lái xe</label>
+                                <div class="license-badge">
+                                    <i class="fa-solid fa-circle-check"></i> Đã xác thực GPLX (Hạng A1, B2)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save-profile">Lưu thay đổi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- VIEW 3: Đơn thuê của tôi -->
+            <div id="view-orders" class="card-box" style="display: none;">
+                <div class="section-header">
+                    <h2>Đơn thuê của tôi</h2>
+                    <p class="section-desc">Quản lý và theo dõi các chuyến xe bạn đã đặt hoặc đang thuê.</p>
+                </div>
+
+                <!-- Tabs lọc đơn thuê -->
+                <div class="tabs order-tabs" style="margin-bottom: 20px;">
+                    <button class="tab-btn active" onclick="filterOrders('all', this)">Tất cả (2)</button>
+                    <button class="tab-btn" onclick="filterOrders('active', this)">Đang thuê (1)</button>
+                    <button class="tab-btn" onclick="filterOrders('completed', this)">Đã hoàn thành (1)</button>
+                </div>
+
+                <div class="order-list">
+                    <div class="order-card">
+                        <div class="order-img">
+                            <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=300"
+                                alt="Xe thuê">
+                        </div>
+                        <div class="order-info">
+                            <div class="order-badge active">Đang thuê</div>
+                            <h3 class="order-car-title">HONDA VISION 2024</h3>
+                            <p class="order-meta"><i class="fa-regular fa-clock"></i> Thời gian: 10/11/2026 - 15/11/2026
+                            </p>
+                            <p class="order-meta"><i class="fa-solid fa-location-dot"></i> Nhận xe: Khu đô thị Văn Quán,
+                                Hà Đông</p>
+                            <div class="order-price-row">
+                                <span class="order-total-label">Tổng tiền:</span>
+                                <span class="order-total-price">750.000 đ</span>
+                            </div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="btn-action btn-detail">Xem chi tiết</button>
+                        </div>
+                    </div>
+
+                    <div class="order-card">
+                        <div class="order-img">
+                            <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=300"
+                                alt="Xe thuê">
+                        </div>
+                        <div class="order-info">
+                            <div class="order-badge completed">Đã hoàn thành</div>
+                            <h3 class="order-car-title">HYUNDAI SANTAFE 2024</h3>
+                            <p class="order-meta"><i class="fa-regular fa-clock"></i> Thời gian: 01/11/2026 - 03/11/2026
+                            </p>
+                            <p class="order-meta"><i class="fa-solid fa-location-dot"></i> Nhận xe: Phố Huế, Hoàn Kiếm,
+                                Hà Nội</p>
+                            <div class="order-price-row">
+                                <span class="order-total-label">Tổng tiền:</span>
+                                <span class="order-total-price">2.700.000 đ</span>
+                            </div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="btn-action btn-detail">Xem chi tiết</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: Danh sách của tôi (Xe yêu thích) -->
+            <div id="view-favorites">
+                <div class="greeting-box">
+                    <h1>Xin chào bạn!</h1>
+                    <p>Quản lý danh sách phương tiện bạn đã lưu và quan tâm.</p>
+                </div>
+
+                <div class="card-box">
+                    <h2>Xe yêu thích của tôi</h2>
+
+                    <!-- Các Tab Chuyển Đổi -->
+                    <div class="tabs">
+                        <button onclick="switchTab('xe-may')" id="tab-xe-may" class="tab-btn active">
+                            Xe máy (<span id="count-xe-may">0</span>)
+                        </button>
+                        <button onclick="switchTab('o-to')" id="tab-o-to" class="tab-btn">
+                            Xe ô tô (<span id="count-o-to">0</span>)
+                        </button>
+                    </div>
+
+                    <!-- Danh sách xe (Được render tự động bằng JS) -->
+                    <div id="cars-container" class="car-list"></div>
+                </div>
+            </div>
+
+            <!-- VIEW 5: Đánh giá của tôi -->
+            <div id="view-reviews" class="card-box" style="display: none;">
+                <div class="section-header">
+                    <h2>Đánh giá của tôi</h2>
+                    <p class="section-desc">Lịch sử các đánh giá và nhận xét bạn đã gửi cho các chuyến đi.</p>
+                </div>
+
+                <div class="review-list">
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div>
+                                <h4 class="review-target">HONDA VISION 2024 - Chủ xe: Hoàng Long</h4>
+                                <div class="review-stars">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <span>5.0</span>
+                                </div>
+                            </div>
+                            <span class="review-date">05/11/2026</span>
+                        </div>
+                        <p class="review-content">Xe mới, chạy êm và rất tiết kiệm xăng. Chủ xe nhiệt tình giao nhận
+                            đúng giờ. Sẽ tiếp tục ủng hộ lần sau!</p>
+                    </div>
+
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div>
+                                <h4 class="review-target">HYUNDAI SANTAFE 2024 - Chủ xe: Đức Mạnh</h4>
+                                <div class="review-stars">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <span>5.0</span>
+                                </div>
+                            </div>
+                            <span class="review-date">03/11/2026</span>
+                        </div>
+                        <p class="review-content">Nội thất sạch sẽ thơm tho, xe đời mới đi rất đầm và êm trên cao tốc.
+                            Bác tài chu đáo, hỗ trợ hành lý nhiệt tình.</p>
+                    </div>
+                </div>
             </div>
         </main>
-    </div>
-
-    <!-- Thông báo nổi (Toast) -->
-    <div id="toast" class="toast">
-        <i class="fa-solid fa-circle-check"></i>
-        <span id="toast-message">Thành công!</span>
     </div>
 
     <script src="script.js"></script>
